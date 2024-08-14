@@ -2,17 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
-
+const productRouter = require('./routes/productsRoutes');
+const orderRouter = require('./routes/orderRoutes');
 
 const app = express();
 
 // 1) global middlewares......
+// Middleware to parse JSON bodies
+app.use(express.json());
 
 app.use(cors());
 // Set security HTTP headers
 app.use(helmet());
-// Body parser, reading data from body into req.body
-app.use(express.json());
+
 app.use(morgan());
 
 // This is often used to track when a request was received.
@@ -23,6 +25,8 @@ app.use((req, res, next) => {
 
 
 // 2) ROUTES
+app.use('/api/v1/products', productRouter);
+app.use('/api/v1/orders', orderRouter);
 
 // routes her !!!
 
