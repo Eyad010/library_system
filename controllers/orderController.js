@@ -412,7 +412,7 @@ exports.getTotalAmount = catchAsync(async (req, res, next) => {
 
   // Set the start and end of the day for the specified date
   const startOfDay = new Date(date.setHours(7, 0, 0, 0));
-  const endOfDay = new Date(date.setHours(22, 0, 0, 0));
+  const endOfDay = new Date(date.setHours(23, 59, 59, 999));
 
   // Aggregate orders within the specified time range
   const totalAmount = await Orders.aggregate([
@@ -432,9 +432,17 @@ exports.getTotalAmount = catchAsync(async (req, res, next) => {
     }
   ]);
 
+  const orders = await Orders.find({
+    orderDate: {
+      $gte: startOfDay,
+      $lt: endOfDay
+    }
+  });
+
   // Respond with the total amount
   res.status(200).json({
     date: req.params.date,
-    totalAmountOfDay: totalAmount.length > 0 ? totalAmount[0].totalAmount : 0
+    totalAmountOfDay: totalAmount.length > 0 ? totalAmount[0].totalAmount : 0,
+    orders: orders
   });
 });
