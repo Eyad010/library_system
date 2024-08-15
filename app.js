@@ -2,16 +2,19 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const helmet = require('helmet');
+const globelError = require('./middleware/globalError');
 const productRouter = require('./routes/productsRoutes');
 const orderRouter = require('./routes/orderRoutes');
 
 const app = express();
 
 // 1) global middlewares......
+
 // Middleware to parse JSON bodies
 app.use(express.json());
 
 app.use(cors());
+
 // Set security HTTP headers
 app.use(helmet());
 
@@ -28,7 +31,6 @@ app.use((req, res, next) => {
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/orders', orderRouter);
 
-// routes her !!!
 
 // catch-all for any routes that haven't been handled by previous route handlers
 app.all('*', (req, res, next) => {
@@ -39,5 +41,6 @@ app.all('*', (req, res, next) => {
 })
 
 // global error her !!!
+app.use(globelError);
 
 module.exports = app;

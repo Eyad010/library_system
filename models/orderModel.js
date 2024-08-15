@@ -20,7 +20,11 @@ const orderSchema = new mongoose.Schema({
   totalAmount: {
     type: Number,
     required: [true, 'Total amount is required']
-  }
+  },
+  orderDate: {
+    type: Date,
+    default: Date.now
+    },
 });
 
 const Order = mongoose.model('Order', orderSchema);

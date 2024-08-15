@@ -2,7 +2,7 @@ const Orders = require('../models/orderModel');
 const Products = require('../models/productsModel');
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
-const mongoose = require("mongoose");
+
 
 
 // create order
@@ -133,27 +133,24 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
 // get all orders
 
 exports.getAllOrders = catchAsync(async (req, res, next) => {
-  const page = parseInt(req.query.page, 10) || 1; // Default to page 1
-  const limit = parseInt(req.query.limit, 10) || 5; // Default to 5 orders per page
-  const searchQuery = req.query.search || ''; // Default to empty string if not provided
+
+  const limit = parseInt(req.query.limit) || 5; // Parse limit to ensure it's a number
+  const page = parseInt(req.query.page) || 1; // Parse page to ensure it's a number
+  const skip = (page - 1) * limit || 0;
+  let query = {};
+
 
   if (page < 1 || limit < 1) {
     return next(new AppError('Invalid page or limit values', 400));
   }
 
-  // Construct the search filter
-  const searchFilter = searchQuery ? {
-    $or: [
-      { 'ID': { $regex: searchQuery, $options: 'i' } },
-      { 'items.product': { $regex: searchQuery, $options: 'i' } }
-    ]
-  } : {};
+    // search by name
+    // if (req.query.search) {
+    //   query.name = { $regex: req.query.search, $options: "i" }; // => new feature 
+    //   };
 
-  // Calculate the skip value
-  const skip = (page - 1) * limit;
-
-  // Query for orders with pagination and search filter
-  const orders = await Orders.find(searchFilter)
+  // Query for orders with pagination and ==> new feature (search filter) Not Implemented Yet
+  const orders = await Orders.find(query)
     .skip(skip)
     .limit(limit);
 
@@ -161,15 +158,21 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
 
   // Get product details for each item in the orders
   const populatedOrders = await Promise.all(orders.map(async order => {
+    // console.log ('order eyad', order);
     const itemsWithProductInfo = await Promise.all(order.items.map(async item => {
-      // Check if item.product is a valid number
-      const productId = Number(item.product);
+      // console.log ('item eyad', item);
+      
+      const productId = item.ID;
       
       if (isNaN(productId)) {
         // console.log(`Invalid product ID: ${item.product}`);
         return {
           ...item._doc,
-          product: null
+          product:{
+            name: product.name,
+            price: product.price,
+          } ,
+          
         };
       }
 
@@ -178,7 +181,7 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
 
       const product = await Products.findOne({ ID: productId });
 
-      // Debugging logs
+      
       if (!product) {
         console.log(`Product not found for ID: ${productId}`);
       }
@@ -196,7 +199,7 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
   }));
 
   // Get the total number of orders for pagination info
-  const totalOrders = await Orders.countDocuments(searchFilter);
+  const totalOrders = await Orders.countDocuments(query);
 
   res.status(200).json({
     status: 'success',
@@ -395,3 +398,43 @@ exports.deleteOrderById = catchAsync(async (req, res, next) => {
   });
 });
 
+
+// get the total amount of the day from order that are sold 
+
+exports.getTotalAmount = catchAsync(async (req, res, next) => {
+  const date = new Date(req.params.date);
+  const now = new Date();
+
+  // Check if the entered date is in the future
+  if (date > now) {
+    return next(new AppError('The entered date is in the future. Please provide a valid date.', 400))
+  };
+
+  // Set the start and end of the day for the specified date
+  const startOfDay = new Date(date.setHours(7, 0, 0, 0));
+  const endOfDay = new Date(date.setHours(22, 0, 0, 0));
+
+  // Aggregate orders within the specified time range
+  const totalAmount = await Orders.aggregate([
+    {
+      $match: {
+        orderDate: {
+          $gte: startOfDay,
+          $lt: endOfDay
+        }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalAmount: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+
+  // Respond with the total amount
+  res.status(200).json({
+    date: req.params.date,
+    totalAmountOfDay: totalAmount.length > 0 ? totalAmount[0].totalAmount : 0
+  });
+});

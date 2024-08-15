@@ -116,5 +116,4 @@ exports.updateProduct = catchAsync(async(req, res, next) => {
           status: 'success',
           data: null
           });
-
   });

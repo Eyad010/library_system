@@ -12,5 +12,5 @@ router.route('/getAllOrders').get(ordersController.getAllOrders); // => done
 router.route('/updateOrder/:id').patch(ordersController.updateOrderById); // => done
 router.route('/deleteOrder/:id').delete(ordersController.deleteOrderById); // => done
 
-
+router.route('/total-amount/:date').get(ordersController.getTotalAmount); // => done
 module.exports = router;
