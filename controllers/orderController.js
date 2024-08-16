@@ -134,15 +134,15 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
 
 exports.getAllOrders = catchAsync(async (req, res, next) => {
 
-  const limit = parseInt(req.query.limit) || 5; // Parse limit to ensure it's a number
-  const page = parseInt(req.query.page) || 1; // Parse page to ensure it's a number
-  const skip = (page - 1) * limit || 0;
+  // const limit = parseInt(req.query.limit) || 5; // Parse limit to ensure it's a number
+  // const page = parseInt(req.query.page) || 1; // Parse page to ensure it's a number
+  // const skip = (page - 1) * limit || 0;
   let query = {};
 
 
-  if (page < 1 || limit < 1) {
-    return next(new AppError('Invalid page or limit values', 400));
-  }
+  // if (page < 1 || limit < 1) {
+  //   return next(new AppError('Invalid page or limit values', 400));
+  // }
 
     // search by name
     // if (req.query.search) {
@@ -150,10 +150,10 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
     //   };
 
   // Query for orders with pagination and ==> new feature (search filter) Not Implemented Yet
-  const orders = await Orders.find(query)
-    .skip(skip)
-    .limit(limit);
-
+  // const orders = await Orders.find(query)
+  //   .skip(skip)
+  //   .limit(limit);
+  const orders = await Orders.find(query);
   // console.log('Orders:', orders);
 
   // Get product details for each item in the orders
@@ -204,8 +204,8 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     results: populatedOrders.length,
-    page,
-    totalPages: Math.ceil(totalOrders / limit),
+    // page,
+    // totalPages: Math.ceil(totalOrders / limit),
     totalOrders,
     data: {
       orders: populatedOrders,

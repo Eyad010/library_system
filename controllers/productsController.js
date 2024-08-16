@@ -54,9 +54,9 @@ exports.getProductById = catchAsync(async(req, res, next) => {
 // get all products
 exports.getAllProducts = catchAsync(async(req, res, next) => {
 
-  const limit = parseInt(req.query.limit) || 5; // Parse limit to ensure it's a number
-  const page = parseInt(req.query.page) || 1; // Parse page to ensure it's a number
-  const skip = (page - 1) * limit || 0;
+  // const limit = parseInt(req.query.limit) || 5; // Parse limit to ensure it's a number
+  // const page = parseInt(req.query.page) || 1; // Parse page to ensure it's a number
+  // const skip = (page - 1) * limit || 0;
   let query = {};
 
 // Search by productID
@@ -69,11 +69,12 @@ if (req.query.ID) {
     query.name = { $regex: req.query.search, $options: "i" }; //
     };
 
-  const products = await Products.find(query).limit(limit).skip(skip);
+  const products = await Products.find(query);
+  // const products = await Products.find(query).limit(limit).skip(skip);
   res.status(200).json({
     status: 'success',
     results: products.length,
-    page: page,
+    // page: page,
     data: {
       products
       }
